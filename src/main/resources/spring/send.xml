@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://www.springframework.org/schema/c"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+						http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+	<bean id="sendUtil" class="com.yzfar.www.base.support.send.SendImpl">
+		<property name="mailHostName" value="${email.hostName}" />
+		<property name="mailUserName" value="${email.userName}" />
+		<property name="mailPassWord" value="${email.password}" />
+		<property name="weChatAgentid" value="${weChat.agentid}" />
+		<property name="weChatCorpid" value="${weChat.corpid}" />
+		<property name="weChatCorpsecret" value="${weChat.corpsecret}" />
+		<property name="weChatCreateSessionUrl" value="${weChat.createSessionUrl}" />
+		<property name="weChatAccessTokenUrl" value="${weChat.accessTokenUrl}" />
+	</bean>
+</beans>

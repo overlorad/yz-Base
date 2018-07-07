@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://www.springframework.org/schema/beans" xmlns:jms="http://www.springframework.org/schema/jms"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-4.0.xsd  
+		http://www.springframework.org/schema/jms
+		http://www.springframework.org/schema/jms/spring-jms-4.0.xsd">
+
+	<bean id="connectionFactory"
+		class="org.springframework.jms.connection.CachingConnectionFactory">
+		<description>JMSFactory</description>
+		<property name="targetConnectionFactory">
+			<bean class="org.apache.activemq.spring.ActiveMQConnectionFactory">
+				<property name="brokerURL" value="${mq.brokerURL}" />
+				<property name="userName" value="${mq.userName}" />
+				<property name="password" value="${mq.password}" />
+				<property name="trustAllPackages" value="true" />
+			</bean>
+		</property>
+		<property name="sessionCacheSize" value="${mq.sessionCacheSize}" />
+	</bean>
+	<bean id="jmsQueueTemplate" class="org.springframework.jms.core.JmsTemplate">
+		<description>jmsQueueTemplate</description>
+		<constructor-arg ref="connectionFactory" />
+		<property name="receiveTimeout" value="${mq.receiveTimeout}" />
+		<property name="pubSubDomain" value="false" />
+	</bean>
+	<bean id="jmsTopicTemplate" class="org.springframework.jms.core.JmsTemplate">
+		<description>jmsTopicTemplate</description>
+		<constructor-arg ref="connectionFactory" />
+		<property name="receiveTimeout" value="${mq.receiveTimeout}" />
+		<property name="pubSubDomain" value="true" />
+	</bean>
+
+	<bean id="mqUtil" class="com.yzfar.www.base.support.mq.MqUtilImpl">
+		<property name="jmsQueueTemplate" ref="jmsQueueTemplate" />
+		<property name="jmsTopicTemplate" ref="jmsTopicTemplate" />
+	</bean>
+</beans>

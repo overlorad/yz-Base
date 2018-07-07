@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+                        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.1.xsd
+                        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.1.xsd">
+
+    <bean id="stat-filter" class="com.alibaba.druid.filter.stat.StatFilter"
+          lazy-init="true">
+        <description>StatFilter</description>
+        <property name="slowSqlMillis" value="3000" />
+        <property name="logSlowSql" value="true" />
+        <property name="mergeSql" value="true" />
+    </bean>
+    <bean id="readDataSource" class="com.alibaba.druid.pool.DruidDataSource"
+          destroy-method="close" init-method="init" lazy-init="true">
+        <description>readDataSource</description>
+        <property name="driverClassName" value="${db.driver}" />
+        <property name="url" value="${db.reader.url}" />
+        <property name="username" value="${db.reader.username}" />
+        <property name="password" value="${db.reader.password}" />
+        <property name="initialSize" value="${db.initialSize}" />
+        <property name="maxActive" value="${db.maxActive}" />
+        <property name="minIdle" value="${db.minIdle}" />
+        <property name="maxWait" value="${db.maxWait}" />
+        <property name="defaultReadOnly" value="true" />
+        <property name="proxyFilters">
+            <list>
+                <ref bean="stat-filter" />
+            </list>
+        </property>
+        <property name="filters" value="${druid.filters}" />
+        <property name="testWhileIdle" value="true" />
+        <property name="testOnBorrow" value="false" />
+        <property name="testOnReturn" value="false" />
+        <property name="validationQuery" value="SELECT 'x'" />
+        <property name="timeBetweenLogStatsMillis" value="60000" />
+        <property name="minEvictableIdleTimeMillis" value="${db.minEvictableIdleTimeMillis}" />
+        <property name="timeBetweenEvictionRunsMillis" value="${db.timeBetweenEvictionRunsMillis}" />
+    </bean>
+    <bean id="writeDataSource" class="com.alibaba.druid.pool.DruidDataSource"
+          destroy-method="close" init-method="init" lazy-init="true">
+        <description>writeDataSource</description>
+        <property name="driverClassName" value="${db.driver}" />
+        <property name="url" value="${db.writer.url}" />
+        <property name="username" value="${db.writer.username}" />
+        <property name="password" value="${db.writer.password}" />
+        <property name="initialSize" value="${db.initialSize}" />
+        <property name="maxActive" value="${db.maxActive}" />
+        <property name="minIdle" value="${db.minIdle}" />
+        <property name="maxWait" value="${db.maxWait}" />
+        <property name="defaultReadOnly" value="false" />
+        <property name="proxyFilters">
+            <list>
+                <ref bean="stat-filter" />
+            </list>
+        </property>
+        <property name="filters" value="${druid.filters}" />
+        <property name="testWhileIdle" value="true" />
+        <property name="testOnBorrow" value="false" />
+        <property name="testOnReturn" value="false" />
+        <property name="validationQuery" value="SELECT 'x'" />
+        <property name="timeBetweenLogStatsMillis" value="60000" />
+        <property name="minEvictableIdleTimeMillis" value="${db.minEvictableIdleTimeMillis}" />
+        <property name="timeBetweenEvictionRunsMillis" value="${db.timeBetweenEvictionRunsMillis}" />
+    </bean>
+    <bean id="dataSource" class="com.yzfar.www.base.support.Hibernate.ChooseDataSource"
+          lazy-init="true">
+        <description>dataSource</description>
+        <property name="targetDataSources">
+            <map key-type="java.lang.String" value-type="javax.sql.DataSource">
+                <entry key="write" value-ref="writeDataSource" />
+                <entry key="read" value-ref="readDataSource" />
+            </map>
+        </property>
+        <property name="defaultTargetDataSource" ref="writeDataSource" />
+        <property name="methodType">
+            <map key-type="java.lang.String">
+                <entry key="read" value=",get,select,count,list,query," />
+                <entry key="write" value=",add,insert,create,update,delete,remove,save," />
+            </map>
+        </property>
+    </bean>
+    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <constructor-arg ref="dataSource" />
+    </bean>
+    <bean id="sessionFactory"
+          class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+        <property name="dataSource" ref="dataSource" />
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.current_session_context_class">org.springframework.orm.hibernate5.SpringSessionContext
+                </prop>
+                <prop key="hibernate.show_sql">${show_sql}</prop>
+                <prop key="hibernate.format_sql">false</prop>
+                <prop key="hibernate.dialect">org.hibernate.dialect.MySQL5Dialect</prop>
+                <prop key="hibernate.connection.release_mode">after_transaction</prop>
+                <prop key="hibernate.cache.use_query_cache">true</prop>
+                <prop key="hibernate.cache.use_second_level_cache">true</prop>
+                <prop key="hibernate.cache.region.factory_class">org.hibernate.cache.ehcache.EhCacheRegionFactory
+                </prop>
+                <prop key="hibernate.hbm2ddl.auto">${hbm2ddl.auto}</prop>
+            </props>
+        </property>
+        <property name="mappingLocations">
+            <list>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="transactionManager"
+          class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+        <property name="sessionFactory" ref="sessionFactory" />
+    </bean>
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <tx:method name="save*" propagation="REQUIRED" />
+            <tx:method name="delete*" propagation="REQUIRED" />
+            <tx:method name="upData*" propagation="REQUIRED" />
+            <tx:method name="*" read-only="true" />
+        </tx:attributes>
+    </tx:advice>
+    <aop:config proxy-target-class="true">
+        <aop:pointcut expression="execution(* com.yzfar.www.base.support.Hibernate.impl.*.*(..))"
+                      id="hibernate-point" />
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="hibernate-point" />
+    </aop:config>
+
+    <bean id="hibernateUtil" class="com.yzfar.www.base.support.Hibernate.impl.HibernateUtilImpl">
+        <property name="sessionFactory" ref="sessionFactory" />
+        <property name="jdbcTemplate" ref="jdbcTemplate" />
+    </bean>
+</beans>
