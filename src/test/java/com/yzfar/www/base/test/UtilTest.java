@@ -17,8 +17,7 @@ import com.yzfar.www.base.util.StringUtil;
 public class UtilTest {
 	@Test
 	public void listTest() {
-		String path = PathUtil.getProjectPath();
-		System.out.println(path);
+		System.out.println(PathUtil.getProjectPath());
 	}
 
 	@Test
