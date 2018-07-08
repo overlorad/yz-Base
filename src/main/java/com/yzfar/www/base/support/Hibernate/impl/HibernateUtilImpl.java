@@ -90,6 +90,10 @@ public class HibernateUtilImpl implements HibernateUtil {
 
 	@Override
 	public Serializable save(Object obj) {
+		if (obj == null) {
+			logger.error("save 【{}】fail obj is null", obj);
+			return null;
+		}
 		Serializable id = sessionFactory.getCurrentSession().save(obj);
 		logger.info("save 【{}】", obj);
 		return id;
