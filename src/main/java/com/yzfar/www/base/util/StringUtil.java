@@ -28,7 +28,7 @@ public final class StringUtil {
 	public static boolean stringToFile(String filePath, String str, String encoding) {
 		BufferedWriter fileWriter = null;
 		try {
-			fileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath, true), encoding));
+			fileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath, false), encoding));
 			fileWriter.write(str);
 			logger.info("save string to 【{}】", filePath);
 			return true;
